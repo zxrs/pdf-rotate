@@ -20,14 +20,6 @@ const DICTIONARY: &[&str] = &[
 /// 辞書に登録されている文字列が見つかったときに使用する係数（調整要）
 const FACTOR: usize = 8;
 
-#[derive(Debug, Clone, Copy)]
-enum Rotation {
-    R0,
-    R90,
-    R180,
-    R270,
-}
-
 /// 指定された PdfPageRenderRotation で PdfPage をレンダリングし、画像の幅、高さ、ビットマップバッファを返す
 fn render(page: &PdfPage, rotation: PdfPageRenderRotation) -> Result<(u32, u32, Vec<u8>)> {
     let config = PdfRenderConfig::new()
