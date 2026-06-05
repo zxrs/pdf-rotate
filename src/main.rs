@@ -20,6 +20,14 @@ const DICTIONARY: &[&str] = &[
 /// 辞書に登録されている文字列が見つかったときに使用する係数（調整要）
 const FACTOR: usize = 8;
 
+#[derive(Debug, Clone, Copy)]
+enum Rotation {
+    R0,
+    R90,
+    R180,
+    R270,
+}
+
 /// 指定された PdfPageRenderRotation で PdfPage をレンダリングし、画像の幅、高さ、ビットマップバッファを返す
 fn render(page: &PdfPage, rotation: PdfPageRenderRotation) -> Result<(u32, u32, Vec<u8>)> {
     let config = PdfRenderConfig::new()
@@ -109,10 +117,20 @@ fn start() -> Result<()> {
         dst_doc
             .pages_mut()
             .copy_page_from_document(&src_doc, i as i32, len)?;
-        // すでにページがローテーションされている（このプログラムで一度処理されたと仮定）場合はスキップ
-        if page.rotation()? != PdfPageRenderRotation::None {
-            continue;
-        }
+        use PdfPageRenderRotation::*;
+        let rotation = match (rotation, page.rotation()?) {
+            (None, r) => r,
+            (r, None) => r,
+            (Degrees90, Degrees90) => Degrees180,
+            (Degrees180, Degrees90) => Degrees270,
+            (Degrees270, Degrees90) => None,
+            (Degrees90, Degrees180) => Degrees270,
+            (Degrees180, Degrees180) => None,
+            (Degrees270, Degrees180) => Degrees90,
+            (Degrees90, Degrees270) => None,
+            (Degrees180, Degrees270) => Degrees90,
+            (Degrees270, Degrees270) => Degrees180,
+        };
         dst_doc.pages_mut().last()?.set_rotation(rotation);
     }
 
